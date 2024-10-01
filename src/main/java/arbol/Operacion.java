@@ -3,11 +3,12 @@ package arbol;
 public class Operacion implements Instruccion {
     public enum Tipo {
         SUMA, RESTA, MULTIPLICACION, DIVISION, MAYOR, MENOR, IGUAL, DIFERENTE, MAYOR_IGUAL, MENOR_IGUAL, CONCATENACION, // Añadir CONCATENACION para cadenas
-        CADENA ,NEGATIVO,CARACTER,NUMERO,ID,MAYOR_QUE,MENOR_QUE// Tipo específico para operaciones con cadenas
+        CADENA ,NEGATIVO,CARACTER,ENTERO,DECIMAL,ID,MAYOR_QUE,MENOR_QUE,MAXIMO,MINIMO,POTENCIA,RAIZ,ABS// Tipo específico para operaciones con cadenas
     }
 
-    private  Operacion izquierda;
-    private  Operacion derecha;
+    public Operacion izquierda;
+    public Operacion derecha;
+
     private final Tipo tipo;
     private  Object valor;
     private  String identificador; // Para manejar variables
@@ -30,9 +31,9 @@ public class Operacion implements Instruccion {
     }
 
     // Constructor para valores numéricos
-    public Operacion(double valor) {
+    public Operacion(Double valor, Tipo tipo) {
         this.valor = valor;
-        this.tipo = Tipo.NUMERO;
+        this.tipo = tipo;
     }
 
     // Constructor para valores de cadena, caracter e identificadores
@@ -45,7 +46,9 @@ public class Operacion implements Instruccion {
     public Object ejecutar() {
         // Operaciones unarias
         switch (tipo) {
-            case NUMERO:
+            case NEGATIVO:
+                return -convertirANumero(izquierda.ejecutar());
+            case ENTERO, DECIMAL:
                 return Double.valueOf(valor.toString());
             case ID:
                 return obtenerValorVariable((String) valor); // Recuperar valor con el método específico

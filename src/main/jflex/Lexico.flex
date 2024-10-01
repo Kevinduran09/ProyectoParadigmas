@@ -18,7 +18,7 @@ import cup.sym;
 /* reglas */
 NUMERO  = [0-9]+
 DECIMAL=[0-9]+("."[  |0-9]+)
-ID =[A-Za-z]+["_"0-9A-Za-z]*
+ID =[a-zA-Z][a-zA-Z0-9]*
 CARACTER            =   [\']([^\t\'\"\n]|(\\\")|(\\n)|(\\\')|(\\t))?[\']
 BLANCOS=[ \r\t]+
 CADENACOMILLASDOBLES = [\"]([^\"\n]|(\\\"))*[\"]
@@ -31,13 +31,21 @@ CADENACOMILLASDOBLES = [\"]([^\"\n]|(\\\"))*[\"]
 "entonces"  { return new Symbol(sym.ENTONCES,yyline,yychar, yytext()); }
 "sino"      {return new Symbol(sym.SINO,yyline,yychar, yytext());}
 "="   { return new Symbol(sym.ASIGNACION,yyline,yychar, yytext()); }
+"definir" { return new Symbol(sym.DEFINIR,yyline,yychar, yytext()); }
+/*FUNCIONES PROPIAS*/
+"largo"             { return new Symbol(sym.LARGO); }
+"abs"               { return new Symbol(sym.ABS); }
+"potencia"          { return new Symbol(sym.POTENCIA); }
+"raiz"              { return new Symbol(sym.RAIZ); }
+"minimo"           { return new Symbol(sym.MINIMO); }
+"maximo"        { return new Symbol(sym.MAXIMO); }
 
 /* Operadores aritméticos */
 "+"         { return new Symbol(sym.SUMA,yyline,yychar, yytext()); }
 "-"         { return new Symbol(sym.RESTA,yyline,yychar, yytext()); }
 "*"         { return new Symbol(sym.MULTIPLICACION,yyline,yychar, yytext()); }
 "/"         { return new Symbol(sym.DIVISION,yyline,yychar, yytext()); }
-
+","         { return new Symbol(sym.COMA,yyline,yychar, yytext()); }
 /* Operadores de comparación */
 ">"         { return new Symbol(sym.MAYOR,yyline,yychar, yytext()); }
 "<"         { return new Symbol(sym.MENOR,yyline,yychar, yytext()); }

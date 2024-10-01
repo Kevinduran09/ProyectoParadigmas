@@ -1,15 +1,16 @@
 package arbol;
 
 public class Imprimir implements Instruccion {
-    private Operacion expresion;
+    private Instruccion expresion;  // Cambiar a tipo Instruccion
 
-    public Imprimir(Operacion expresion) {
+    public Imprimir(Instruccion expresion) {
         this.expresion = expresion;
     }
 
     @Override
     public Object ejecutar() {
-        System.out.println(expresion.ejecutar());
+        Object resultado = expresion.ejecutar();  // Ejecuta cualquier instrucción
+        System.out.println(resultado);
         return null;
     }
 }

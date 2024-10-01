@@ -34,14 +34,15 @@ parser code
 
 // Definir los terminales (tokens)
 terminal String IDENTIFICADOR;
-terminal String NUMERO,CARACTER;
+terminal String CARACTER;
 terminal String DECIMAL,ENTERO;
-terminal String CADENA; // Terminal para las cadenas
+terminal String CADENA;
 terminal String IMPRIMIR, ASIGNACION, SUMA, RESTA, MULTIPLICACION, DIVISION, PUNTOCOMA, PARENTESIS_ABRE, PARENTESIS_CIERRA;
 terminal String DEFINIR, LEER, SI, ENTONCES, MAYOR_IGUAL, MENOR_IGUAL;
-terminal String MAYOR,MENOR;
+terminal String MAYOR,MENOR,COMA;
 terminal String INCREMENTO, DECREMENTO,SINO,MIENTRAS,LLAVIZQ,LLAVDER;
 terminal String UMENOS;
+terminal String MINIMO,MAXIMO,LARGO,POTENCIA,RAIZ,ABS;
 // Definir los no terminales que construyen el AST
 non terminal ini;
 non terminal LinkedList<Instruccion> instrucciones;
@@ -70,12 +71,12 @@ instrucciones ::=
 ;
 
 instruccion ::=
-   IMPRIMIR PARENTESIS_ABRE expresion_cadena:a PARENTESIS_CIERRA PUNTOCOMA  {:RESULT=new Imprimir(a);:}
-   | MIENTRAS    PARENTESIS_ABRE expresion_logica:a PARENTESIS_CIERRA LLAVIZQ instrucciones:b LLAVDER {:RESULT=new Mientras(a,b);:}
+ IMPRIMIR PARENTESIS_ABRE expresion_cadena:a PARENTESIS_CIERRA PUNTOCOMA  {:RESULT=new Imprimir(a);:}
+ | MIENTRAS    PARENTESIS_ABRE expresion_logica:a PARENTESIS_CIERRA LLAVIZQ instrucciones:b LLAVDER {:RESULT=new Mientras(a,b);:}
  | LEER IDENTIFICADOR:a PUNTOCOMA                                                {:RESULT=new Leer(a);:}
  | SI PARENTESIS_ABRE expresion_logica:a PARENTESIS_CIERRA ENTONCES PARENTESIS_ABRE instrucciones:b PARENTESIS_CIERRA {:RESULT=new SI(a, b);:}
- | SI PARENTESIS_ABRE expresion_logica:a PARENTESIS_CIERRA ENTONCES PARENTESIS_ABRE instrucciones:b PARENTESIS_CIERRA SINO PARENTESIS_ABRE instrucciones:c PARENTESIS_CIERRA {:RESULT=new SI(a, b);:}
- | IDENTIFICADOR:a ASIGNACION expresion_numerica:b PUNTOCOMA                   {:RESULT=new Asignacion(a, b);:}
+ | SI PARENTESIS_ABRE expresion_logica:a PARENTESIS_CIERRA ENTONCES PARENTESIS_ABRE instrucciones:b PARENTESIS_CIERRA SINO PARENTESIS_ABRE instrucciones:c PARENTESIS_CIERRA {:RESULT=new SI(a, b,c);:}
+ | DEFINIR PARENTESIS_ABRE IDENTIFICADOR:a ASIGNACION expresion_cadena:b  PARENTESIS_CIERRA PUNTOCOMA                   {:RESULT=new Asignacion(a, b);:}
  | error
 ;
 
@@ -87,8 +88,8 @@ expresion_numerica  ::=
  |  expresion_numerica:a MULTIPLICACION expresion_numerica:b  {:RESULT=new Operacion(a, b, Operacion.Tipo.MULTIPLICACION);:}
  |  expresion_numerica:a DIVISION expresion_numerica:b        {:RESULT=new Operacion(a, b, Operacion.Tipo.DIVISION);:}
  |  PARENTESIS_ABRE expresion_numerica:a PARENTESIS_CIERRA    {:RESULT=a;:}
- |  ENTERO:a                                                  {:RESULT=new Operacion(Double.valueOf(a));:}
- |  DECIMAL:a                                                 {:RESULT=new Operacion(Double.valueOf(a));:}
+  |  ENTERO:a                                                  {:RESULT=new Operacion(Double.parseDouble(a), Operacion.Tipo.ENTERO);:}
+  |  DECIMAL:a                                                 {:RESULT=new Operacion(Double.parseDouble(a), Operacion.Tipo.DECIMAL);:}
  |  CARACTER:a                                                {:RESULT=new Operacion(a, Operacion.Tipo.CARACTER);:}
  |  IDENTIFICADOR:a                                           {:RESULT=new Operacion(a, Operacion.Tipo.ID);:}
 ;
@@ -96,6 +97,12 @@ expresion_numerica  ::=
 expresion_cadena ::=
     expresion_cadena:a SUMA expresion_cadena:b {:RESULT=new Operacion(a, b, Operacion.Tipo.CONCATENACION);:}
  |  CADENA:a                                    {:RESULT=new Operacion(a, Operacion.Tipo.CADENA);:}
+ | LARGO PARENTESIS_ABRE expresion_cadena:a PARENTESIS_CIERRA {:RESULT=new OperacionLargo(a);:}
+ | MAXIMO PARENTESIS_ABRE expresion_cadena:a COMA expresion_cadena:b PARENTESIS_CIERRA  {:RESULT=new OperacionMaximo(a, b);:}
+ | MINIMO PARENTESIS_ABRE expresion_cadena:a COMA expresion_cadena:b PARENTESIS_CIERRA  {:RESULT=new OperacionMinimo(a, b);:}
+ | POTENCIA PARENTESIS_ABRE expresion_cadena:a COMA expresion_cadena:b PARENTESIS_CIERRA  {:RESULT=new OperacionPotencia(a, b);:}
+ | RAIZ PARENTESIS_ABRE expresion_cadena:a PARENTESIS_CIERRA  {:RESULT=new OperacionRaiz(a);:}
+ | ABS PARENTESIS_ABRE expresion_cadena:a PARENTESIS_CIERRA  {:RESULT=new OperacionAbs(a);:}
  |  expresion_numerica:a                        {:RESULT=a;:}
 ;
 
