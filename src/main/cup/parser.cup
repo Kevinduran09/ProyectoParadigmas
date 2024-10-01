@@ -1,0 +1,105 @@
+package cup;
+
+import arbol.*;
+import java.util.LinkedList;
+import java_cup.runtime.*;
+
+parser code
+{:
+    /**
+     * Variable en la que se almacena el arbol de sintaxis abstracta que se
+     * genera luego del analisis sintáctico.
+     */
+    public LinkedList<Instruccion> AST;
+    /**
+     * Método al que se llama automáticamente ante algún error sintactico.
+     **/
+    public void syntax_error(Symbol s){
+            System.err.println("Error Sintáctico en la Línea " + (s.left) +" Columna "+s.right+ ". No se esperaba este componente: " +s.value+".");
+    }
+    /**
+     * Método al que se llama en el momento en que ya no es posible una recuperación de errores.
+     **/
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{
+             System.err.println("Error síntactico irrecuperable en la Línea " + (s.left)+ " Columna "+s.right+". Componente " + s.value + " no reconocido.");
+    }
+    /**
+     * Método que devuelve el AST que se generó después de realizar el análisis sintáctico.
+     * @return árbol de sintaxis abstacta que será utilizado posteriormente en la ejecución.
+     */
+    public LinkedList<Instruccion> getAST() {
+        return AST;
+    }
+:}
+
+// Definir los terminales (tokens)
+terminal String IDENTIFICADOR;
+terminal String NUMERO,CARACTER;
+terminal String DECIMAL,ENTERO;
+terminal String CADENA; // Terminal para las cadenas
+terminal String IMPRIMIR, ASIGNACION, SUMA, RESTA, MULTIPLICACION, DIVISION, PUNTOCOMA, PARENTESIS_ABRE, PARENTESIS_CIERRA;
+terminal String DEFINIR, LEER, SI, ENTONCES, MAYOR_IGUAL, MENOR_IGUAL;
+terminal String MAYOR,MENOR;
+terminal String INCREMENTO, DECREMENTO,SINO,MIENTRAS,LLAVIZQ,LLAVDER;
+terminal String UMENOS;
+// Definir los no terminales que construyen el AST
+non terminal ini;
+non terminal LinkedList<Instruccion> instrucciones;
+non terminal Instruccion instruccion;
+non terminal Operacion expresion_numerica;
+non terminal Operacion expresion_cadena;
+non terminal Operacion expresion_logica;
+
+precedence left SUMA, RESTA;
+precedence left MULTIPLICACION, DIVISION;
+precedence right UMENOS;
+precedence right INCREMENTO, DECREMENTO;
+
+start with ini;
+
+ini::=instrucciones:a{:
+    //se guarda el AST, que es la lista principal de instrucciones en la variable
+    //AST que se definió dentro del parser
+    parser.AST=a;
+:}
+;
+
+instrucciones ::=
+   instrucciones:a instruccion:b {:RESULT=a; RESULT.add(b);:}
+ | instruccion:a {:RESULT=new LinkedList<>(); RESULT.add(a);:}
+;
+
+instruccion ::=
+   IMPRIMIR PARENTESIS_ABRE expresion_cadena:a PARENTESIS_CIERRA PUNTOCOMA  {:RESULT=new Imprimir(a);:}
+   | MIENTRAS    PARENTESIS_ABRE expresion_logica:a PARENTESIS_CIERRA LLAVIZQ instrucciones:b LLAVDER {:RESULT=new Mientras(a,b);:}
+ | LEER IDENTIFICADOR:a PUNTOCOMA                                                {:RESULT=new Leer(a);:}
+ | SI PARENTESIS_ABRE expresion_logica:a PARENTESIS_CIERRA ENTONCES PARENTESIS_ABRE instrucciones:b PARENTESIS_CIERRA {:RESULT=new SI(a, b);:}
+ | SI PARENTESIS_ABRE expresion_logica:a PARENTESIS_CIERRA ENTONCES PARENTESIS_ABRE instrucciones:b PARENTESIS_CIERRA SINO PARENTESIS_ABRE instrucciones:c PARENTESIS_CIERRA {:RESULT=new SI(a, b);:}
+ | IDENTIFICADOR:a ASIGNACION expresion_numerica:b PUNTOCOMA                   {:RESULT=new Asignacion(a, b);:}
+ | error
+;
+
+
+expresion_numerica  ::=
+    RESTA expresion_numerica:a                                {:RESULT=new Operacion(a, Operacion.Tipo.NEGATIVO);:}%prec UMENOS
+ |  expresion_numerica:a SUMA expresion_numerica:b            {:RESULT=new Operacion(a, b, Operacion.Tipo.SUMA);:}
+ |  expresion_numerica:a RESTA expresion_numerica:b           {:RESULT=new Operacion(a, b, Operacion.Tipo.RESTA);:}
+ |  expresion_numerica:a MULTIPLICACION expresion_numerica:b  {:RESULT=new Operacion(a, b, Operacion.Tipo.MULTIPLICACION);:}
+ |  expresion_numerica:a DIVISION expresion_numerica:b        {:RESULT=new Operacion(a, b, Operacion.Tipo.DIVISION);:}
+ |  PARENTESIS_ABRE expresion_numerica:a PARENTESIS_CIERRA    {:RESULT=a;:}
+ |  ENTERO:a                                                  {:RESULT=new Operacion(Double.valueOf(a));:}
+ |  DECIMAL:a                                                 {:RESULT=new Operacion(Double.valueOf(a));:}
+ |  CARACTER:a                                                {:RESULT=new Operacion(a, Operacion.Tipo.CARACTER);:}
+ |  IDENTIFICADOR:a                                           {:RESULT=new Operacion(a, Operacion.Tipo.ID);:}
+;
+
+expresion_cadena ::=
+    expresion_cadena:a SUMA expresion_cadena:b {:RESULT=new Operacion(a, b, Operacion.Tipo.CONCATENACION);:}
+ |  CADENA:a                                    {:RESULT=new Operacion(a, Operacion.Tipo.CADENA);:}
+ |  expresion_numerica:a                        {:RESULT=a;:}
+;
+
+expresion_logica  ::=
+   expresion_numerica:a MAYOR expresion_numerica:b {:RESULT=new Operacion(a, b, Operacion.Tipo.MAYOR_QUE);:}
+ | expresion_numerica:a MENOR expresion_numerica:b {:RESULT=new Operacion(a, b, Operacion.Tipo.MENOR_QUE);:}
+;
