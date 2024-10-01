@@ -3,7 +3,7 @@ package arbol;
 public class Operacion implements Instruccion {
     public enum Tipo {
         SUMA, RESTA, MULTIPLICACION, DIVISION, MAYOR, MENOR, IGUAL, DIFERENTE, MAYOR_IGUAL, MENOR_IGUAL, CONCATENACION, // Añadir CONCATENACION para cadenas
-        CADENA ,NEGATIVO,CARACTER,ENTERO,DECIMAL,ID,MAYOR_QUE,MENOR_QUE,MAXIMO,MINIMO,POTENCIA,RAIZ,ABS// Tipo específico para operaciones con cadenas
+        CADENA ,NEGATIVO,CARACTER,ENTERO,DECIMAL,ID,MAYOR_QUE,MENOR_QUE,MAXIMO,MINIMO,POTENCIA,RAIZ,ABS // Tipo específico para operaciones con cadenas
     }
 
     public Operacion izquierda;

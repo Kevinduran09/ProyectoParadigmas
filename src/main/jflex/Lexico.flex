@@ -33,13 +33,14 @@ CADENACOMILLASDOBLES = [\"]([^\"\n]|(\\\"))*[\"]
 "="   { return new Symbol(sym.ASIGNACION,yyline,yychar, yytext()); }
 "definir" { return new Symbol(sym.DEFINIR,yyline,yychar, yytext()); }
 /*FUNCIONES PROPIAS*/
-"largo"             { return new Symbol(sym.LARGO); }
-"abs"               { return new Symbol(sym.ABS); }
-"potencia"          { return new Symbol(sym.POTENCIA); }
-"raiz"              { return new Symbol(sym.RAIZ); }
-"minimo"           { return new Symbol(sym.MINIMO); }
+"largo"             { return new Symbol(sym.LARGO,yyline,yychar, yytext()); }
+"abs"               { return new Symbol(sym.ABS,yyline,yychar, yytext()); }
+"potencia"          { return new Symbol(sym.POTENCIA,yyline,yychar, yytext()); }
+"raiz"              { return new Symbol(sym.RAIZ,yyline,yychar, yytext()); }
+"minimo"           { return new Symbol(sym.MINIMO,yyline,yychar, yytext()); }
 "maximo"        { return new Symbol(sym.MAXIMO); }
-
+"funcion"               { return new Symbol(sym.FUNCION,yyline,yychar, yytext()); }
+"return"            { return new Symbol(sym.RETURN,yyline,yychar, yytext()); }
 /* Operadores aritméticos */
 "+"         { return new Symbol(sym.SUMA,yyline,yychar, yytext()); }
 "-"         { return new Symbol(sym.RESTA,yyline,yychar, yytext()); }

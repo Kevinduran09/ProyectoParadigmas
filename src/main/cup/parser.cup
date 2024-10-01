@@ -43,6 +43,7 @@ terminal String MAYOR,MENOR,COMA;
 terminal String INCREMENTO, DECREMENTO,SINO,MIENTRAS,LLAVIZQ,LLAVDER;
 terminal String UMENOS;
 terminal String MINIMO,MAXIMO,LARGO,POTENCIA,RAIZ,ABS;
+terminal String FUNCION, RETURN;
 // Definir los no terminales que construyen el AST
 non terminal ini;
 non terminal LinkedList<Instruccion> instrucciones;
@@ -50,6 +51,10 @@ non terminal Instruccion instruccion;
 non terminal Operacion expresion_numerica;
 non terminal Operacion expresion_cadena;
 non terminal Operacion expresion_logica;
+non terminal LinkedList<String> lista_parametros;
+non terminal LinkedList<Operacion> lista_parametros_invocacion;
+
+
 
 precedence left SUMA, RESTA;
 precedence left MULTIPLICACION, DIVISION;
@@ -70,14 +75,40 @@ instrucciones ::=
  | instruccion:a {:RESULT=new LinkedList<>(); RESULT.add(a);:}
 ;
 
+
+// Lista de parámetros de la función
+
+
+
+
 instruccion ::=
- IMPRIMIR PARENTESIS_ABRE expresion_cadena:a PARENTESIS_CIERRA PUNTOCOMA  {:RESULT=new Imprimir(a);:}
- | MIENTRAS    PARENTESIS_ABRE expresion_logica:a PARENTESIS_CIERRA LLAVIZQ instrucciones:b LLAVDER {:RESULT=new Mientras(a,b);:}
- | LEER IDENTIFICADOR:a PUNTOCOMA                                                {:RESULT=new Leer(a);:}
- | SI PARENTESIS_ABRE expresion_logica:a PARENTESIS_CIERRA ENTONCES PARENTESIS_ABRE instrucciones:b PARENTESIS_CIERRA {:RESULT=new SI(a, b);:}
- | SI PARENTESIS_ABRE expresion_logica:a PARENTESIS_CIERRA ENTONCES PARENTESIS_ABRE instrucciones:b PARENTESIS_CIERRA SINO PARENTESIS_ABRE instrucciones:c PARENTESIS_CIERRA {:RESULT=new SI(a, b,c);:}
- | DEFINIR PARENTESIS_ABRE IDENTIFICADOR:a ASIGNACION expresion_cadena:b  PARENTESIS_CIERRA PUNTOCOMA                   {:RESULT=new Asignacion(a, b);:}
- | error
+    IMPRIMIR PARENTESIS_ABRE expresion_cadena:a PARENTESIS_CIERRA PUNTOCOMA {: RESULT = new Imprimir(a); :}
+|   MIENTRAS PARENTESIS_ABRE expresion_logica:a PARENTESIS_CIERRA LLAVIZQ instrucciones:b LLAVDER {: RESULT = new Mientras(a, b); :}
+|   LEER IDENTIFICADOR:a PUNTOCOMA {: RESULT = new Leer(a); :}
+|   SI PARENTESIS_ABRE expresion_logica:a PARENTESIS_CIERRA ENTONCES PARENTESIS_ABRE instrucciones:b PARENTESIS_CIERRA {: RESULT = new SI(a, b); :}
+|   SI PARENTESIS_ABRE expresion_logica:a PARENTESIS_CIERRA ENTONCES PARENTESIS_ABRE instrucciones:b PARENTESIS_CIERRA SINO PARENTESIS_ABRE instrucciones:c PARENTESIS_CIERRA {: RESULT = new SI(a, b, c); :}
+|   DEFINIR PARENTESIS_ABRE IDENTIFICADOR:a ASIGNACION expresion_cadena:b PARENTESIS_CIERRA PUNTOCOMA {: RESULT = new Asignacion(a, b); :}
+|   FUNCION IDENTIFICADOR:f PARENTESIS_ABRE lista_parametros:b PARENTESIS_CIERRA LLAVIZQ instrucciones:c LLAVDER {: RESULT = new DefinirFuncion(f, b, c); :}
+|   IDENTIFICADOR:a PARENTESIS_ABRE lista_parametros_invocacion:b PARENTESIS_CIERRA PUNTOCOMA {: RESULT = new LlamarFuncion(a, b); :}
+|   error
+;
+lista_parametros ::=
+    lista_parametros:a COMA IDENTIFICADOR:b {:
+        a.add(b); // Agregar el identificador a la lista de parámetros
+        RESULT = a; // Retornar la lista acumulada
+    :}
+ | IDENTIFICADOR:a {:
+        LinkedList<String> result = new LinkedList<>();
+        result.add(a); // Crear una nueva lista y agregar el primer parámetro
+        RESULT = result; // Retornar la lista de un solo parámetro
+    :}
+ | /* vacío */ {: RESULT = new LinkedList<>(); :} // Retornar una lista vacía
+;
+// Lista de parámetros al invocar una función
+lista_parametros_invocacion ::=
+    lista_parametros_invocacion:a COMA expresion_numerica:b {: RESULT = a; RESULT.add(b); :}
+ | expresion_numerica:a {: RESULT = new LinkedList<>(); RESULT.add(a); :}
+ | /* vacío */ {: RESULT = new LinkedList<>(); :}
 ;
 
 
@@ -109,4 +140,7 @@ expresion_cadena ::=
 expresion_logica  ::=
    expresion_numerica:a MAYOR expresion_numerica:b {:RESULT=new Operacion(a, b, Operacion.Tipo.MAYOR_QUE);:}
  | expresion_numerica:a MENOR expresion_numerica:b {:RESULT=new Operacion(a, b, Operacion.Tipo.MENOR_QUE);:}
+ | expresion_numerica:a MAYOR_IGUAL expresion_numerica:b {:RESULT=new Operacion(a, b, Operacion.Tipo.MAYOR_IGUAL);:}
+ | expresion_numerica:a MENOR_IGUAL expresion_numerica:b {:RESULT=new Operacion(a, b, Operacion.Tipo.MENOR_IGUAL);:}
+ | expresion_numerica:a ASIGNACION expresion_numerica:b {:RESULT=new Operacion(a, b, Operacion.Tipo.IGUAL);:}
 ;
